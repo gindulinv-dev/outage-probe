@@ -1,0 +1,42 @@
+name: Probe DTEK
+on:
+  workflow_dispatch:
+    inputs:
+      attempts:
+        description: 'Число попыток'
+        required: false
+        default: '5'
+      gap_sec:
+        description: 'Пауза между попытками, сек'
+        required: false
+        default: '60'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: npx --yes playwright install --with-deps chromium
+      - name: Probe
+        env:
+          PROBE_ATTEMPTS: ${{ github.event.inputs.attempts }}
+          PROBE_GAP_SEC: ${{ github.event.inputs.gap_sec }}
+        run: node scripts/probe.mjs
+      - name: Upload HTML of attempts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: probe-html
+          path: outputs/*.html
+          retention-days: 3
+          if-no-files-found: ignore
