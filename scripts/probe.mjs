@@ -17,7 +17,8 @@ function analyze(html) {
     bytes: html.length,
     hasFact: html.includes('DisconSchedule.fact'),
     hasPreset: html.includes('DisconSchedule.preset'),
-    incapsula: /_Incapsula_Resource|Incapsula incident|Request unsuccessful/i.test(html),
+    // Строка _Incapsula_Resource есть и на нормальной странице, поэтому считаем блокировкой только маленькую заглушку
+    incapsula: html.length < 5000 && /_Incapsula_Resource|Incapsula incident|Request unsuccessful/i.test(html),
     title: (html.match(/<title[^>]*>([^<]{0,120})/i) || [])[1] || null,
   };
 }

@@ -1,9 +1,18 @@
 {
-  "name": "outage-odesa-probe",
+  "name": "outage-odesa-collector",
   "version": "1.0.0",
   "private": true,
-  "description": "Одноразовая проверка: пускает ли ДТЭК Одесские электросети headless-браузер с IP GitHub Actions",
+  "description": "Сборщик графиков отключений ДТЭК Одесские электросети: открывает страницу браузером и шлёт данные в Worker",
+  "type": "module",
+  "scripts": {
+    "collect": "node scripts/collect.mjs",
+    "test": "node --test tests/unit.test.mjs",
+    "test:e2e": "node --test tests/e2e.test.mjs"
+  },
   "devDependencies": {
     "playwright": "1.56.1"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
