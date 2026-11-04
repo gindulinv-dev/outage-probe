@@ -1,0 +1,9 @@
+{
+  "name": "outage-odesa-probe",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Одноразовая проверка: пускает ли ДТЭК Одесские электросети headless-браузер с IP GitHub Actions",
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}
