@@ -1,7 +1,7 @@
 // Сборщик: открывает страницу ДТЭК браузером, достаёт fact и preset, шлёт в Worker (/ingest).
 //
 // Env (секреты репозитория): WORKER_URL, INGEST_TOKEN
-// Env (необязательно): DTEK_URL, MAX_FETCH_RETRY (3), FETCH_BACKOFF_MS (3000)
+// Env (необязательно): DTEK_URL, MAX_FETCH_RETRY (3), FETCH_BACKOFF_MS (3000), POST_TIMEOUT_MS (150000)
 //
 // Код выхода: 0, если Worker данные или отчёт об ошибке принял (алерты шлёт сам Worker);
 // 1, если Worker недоступен или отверг запрос: это сбой настройки, он должен быть виден как «красный» запуск.
@@ -16,6 +16,10 @@ const WORKER_URL = (process.env.WORKER_URL || '').replace(/\/+$/, '');
 const INGEST_TOKEN = process.env.INGEST_TOKEN || '';
 const MAX_RETRY = Number(process.env.MAX_FETCH_RETRY || 3);
 const BACKOFF_MS = Number(process.env.FETCH_BACKOFF_MS || 3000);
+// Сколько ждать ответ Worker на /ingest. Worker отвечает только после рассылки уведомлений об изменении графика
+// (с версии 2.3 до 100 с, около 2500 сообщений в темпе 25 в секунду); пока сборщик ждёт, Cloudflare не прерывает рассылку.
+// Должно быть больше SEND_INGEST_MAX_MS в worker.js с запасом.
+const POST_TIMEOUT_MS = Number(process.env.POST_TIMEOUT_MS || 150_000);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -97,7 +101,7 @@ async function post(body) {
         method: 'POST',
         headers: { Authorization: `Bearer ${INGEST_TOKEN}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(20_000),
+        signal: AbortSignal.timeout(POST_TIMEOUT_MS),
       });
       const text = (await res.text()).slice(0, 200);
       if (res.ok) return { status: res.status, text };
